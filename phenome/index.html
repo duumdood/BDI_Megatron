@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Biomarker Platform Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-body: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        /* แถบ Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .tab-container {
+            background-color: #e2e8f0;
+            padding: 6px;
+            border-radius: 50px;
+            display: inline-flex;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            font-size: 15px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            background-color: transparent;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .selector-box {
+            padding: 24px 30px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .selector-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            min-width: 300px;
+        }
+
+        .selector-left label {
+            font-weight: 600;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+
+        select,
+        .input-text {
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            background-color: #f8fafc;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        select:focus,
+        .input-text:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* สวิตช์ Minimal Panel */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eff6ff;
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid #bfdbfe;
+        }
+
+        .toggle-container span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider-toggle {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider-toggle:before {
+            transform: translateX(20px);
+        }
+
+        .dashboard-grid {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .left-panel {
+            flex: 1.1;
+            padding: 30px;
+        }
+
+        .right-panel {
+            flex: 1.3;
+            padding: 50px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* การตกแต่ง Slider */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .physical-box {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .slider-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .slider-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .feature-name {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .feature-name b {
+            color: var(--primary);
+            margin-right: 4px;
+        }
+
+        .normal-value {
+            color: #10b981;
+            font-size: 13px;
+            font-weight: 500;
+            margin-left: 10px;
+            background: #ecfdf5;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .importance-score {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-left: 6px;
+        }
+
+        .value-display {
+            font-weight: 600;
+            color: var(--text-main);
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--primary);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* วงกลม Sphere */
+        .sphere-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 30px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .risk-value {
+            position: relative;
+            z-index: 2;
+            font-size: 72px;
+            font-weight: 700;
+            color: #0f172a;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 10px rgba(255, 255, 255, 1);
+        }
+
+        .risk-status-text {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* กราฟ Data Viz */
+        .chart-container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-top: 20px;
+        }
+
+        /* อัปโหลด */
+        .upload-container {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .file-input-hidden {
+            display: none;
+        }
+
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            border-radius: var(--radius-md);
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+        }
+
+        .upload-box h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: var(--text-main);
+        }
+
+        .upload-box p.file-name-display {
+            margin: 0;
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 20px;
+            font-size: 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            margin-top: 10px;
+        }
+
+        .upload-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        #mapping-section {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        #mapping-section h4 {
+            color: #166534;
+            font-size: 16px;
+            margin: 0 0 15px 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🩺 AI Biomarker Platform Pro</h1>
+        <p>ค้นหา Biomarker วิเคราะห์ความสัมพันธ์ และพยากรณ์ความเสี่ยงโรคอัจฉริยะ</p>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('predict')">📊 หน้าจอพยากรณ์ (Predict)</button>
+            <button class="tab-btn" onclick="switchTab('dataviz')">📈 สถิติเชิงลึก (Data Viz)</button>
+            <button class="tab-btn" onclick="switchTab('upload')">📁 นำเข้าชุดข้อมูลใหม่</button>
+        </div>
+    </div>
+
+    <div id="tab-predict" class="tab-content active">
+        <div class="card selector-box">
+            <div class="selector-left">
+                <label>🔍 เลือกภาวะที่ต้องการวิเคราะห์:</label>
+                <select id="disease-selector" onchange="onDiseaseChange()">
+                    <option value="">-- กำลังโหลดข้อมูล... --</option>
+                </select>
+            </div>
+
+            <div class="toggle-container" title="ใช้เฉพาะสารเคมีที่สำคัญที่สุด 3 อันดับแรก เพื่อลดค่าใช้จ่ายในการตรวจ">
+                <span>⚡ โหมด Minimal Panel (Top 3)</span>
+                <label class="switch">
+                    <input type="checkbox" id="minimal-toggle" onchange="onDiseaseChange()">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card left-panel">
+
+                <div class="physical-box" id="physical-data-section" style="display:none;">
+                    <h3 class="section-title" style="border:none; margin-bottom:10px;">👤 ปัจจัยทางกายภาพ (Physical
+                        Data)</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top:0;">
+                        ปรับค่าปัจจัยเหล่านี้เพื่อดูผลกระทบร่วมกับสารเคมี</p>
+                    <div id="physical-sliders"></div>
+                </div>
+
+                <h3 class="section-title">🧪 ระดับสารเมตาบอไลต์ (Metabolites)</h3>
+                <div id="sliders-container">
+                    <div style="text-align: center; color: #94a3b8; padding: 40px 0;">⏳
+                        กรุณาเลือกภาวะเพื่อเริ่มการวิเคราะห์</div>
+                </div>
+            </div>
+
+            <div class="card right-panel">
+                <h3 style="margin-top:0; color: var(--text-main); font-weight: 600; text-align: center; font-size: 20px;"
+                    id="result-header">โอกาสพบภาวะผิดปกติ</h3>
+                <div class="sphere-container">
+                    <canvas id="particle-sphere" width="350" height="350"></canvas>
+                    <div class="risk-value" id="risk-circle">--%</div>
+                </div>
+                <div id="risk-status" class="risk-status-text">รอการคำนวณ...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-dataviz" class="tab-content">
+        <div class="card chart-container">
+            <h2 style="margin-top: 0; text-align: center;">📊 กราฟเปรียบเทียบระดับสารเคมี (Differential Analysis)</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">
+                เปรียบเทียบค่าที่คุณปรับตั้งในหน้าพยากรณ์ กับค่าเฉลี่ยมาตรฐาน (Normal Avg)</p>
+            <canvas id="comparisonChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div id="tab-upload" class="tab-content">
+        <div class="card upload-container">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 30px; font-weight: 600;">➕ Train New Model</h2>
+
+            <label class="form-label">🏷️ ชื่อภาวะ หรือชื่อโรค (เช่น มะเร็งตับ):</label>
+            <input type="text" id="input-disease-name" class="input-text" placeholder="ระบุชื่อโรคที่ต้องการ..."
+                style="margin-bottom: 20px;">
+
+            <div class="upload-box" onclick="document.getElementById('file-nmr').click()">
+                <h4>1. ไฟล์ผลตรวจ NMR (.tsv, .txt, .csv)</h4>
+                <p class="file-name-display" id="display-nmr">🖱️ คลิกเพื่อเลือกไฟล์</p>
+                <input type="file" id="file-nmr" class="file-input-hidden" accept=".tsv,.txt,.csv"
+                    onchange="updateFileName(this, 'display-nmr')">
+            </div>
+
+            <div class="upload-box" onclick="document.getElementById('file-meta').click()">
+                <h4>2. ไฟล์ทะเบียนตัวอย่าง - Meta (.tsv, .txt, .csv)</h4>
+                <p class="file-name-display" id="display-meta">🖱️ คลิกเพื่อเลือกไฟล์</p>
+                <input type="file" id="file-meta" class="file-input-hidden" accept=".tsv,.txt,.csv"
+                    onchange="updateFileName(this, 'display-meta')">
+            </div>
+
+            <div id="mapping-section">
+                <h4>⚙️ ตั้งค่าการจับคู่คอลัมน์</h4>
+                <label class="form-label">1. ระบุคอลัมน์ "รหัสตัวอย่าง" (Sample ID) :</label>
+                <select id="map-sample-col" style="margin-bottom: 15px;"></select>
+
+                <label class="form-label">2. ระบุคอลัมน์ "เกณฑ์แบ่งกลุ่มโรค" (Target) :</label>
+                <select id="map-target-col" style="margin-bottom: 15px;"></select>
+
+                <label class="form-label">3. ระบุคอลัมน์ "ข้อมูลกายภาพ" เช่น อายุ, BMI (ตัวเลือกเสริม) :</label>
+                <select id="map-physical-col">
+                    <option value="">-- ไม่ใช้ข้อมูลกายภาพ --</option>
+                </select>
+            </div>
+
+            <button class="upload-btn" id="btn-train" onclick="uploadNewDisease()">🚀
+                สร้างโมเดลและวิเคราะห์สารเคมี</button>
+            <p id="upload-status" style="text-align:center; font-weight: 500; margin-top: 20px; font-size: 15px;"></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000/api";
+        let allDiseasesData = {};
+        let currentDisease = "";
+        let sphereColor = '#94a3b8';
+        let myChart = null;
+
+        // --- 🔮 CANVAS 3D PARTICLE SPHERE ---
+        const canvas = document.getElementById('particle-sphere');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 450; i++) {
+                particles.push({
+                    theta: Math.random() * 2 * Math.PI,
+                    phi: Math.acos(Math.random() * 2 - 1),
+                    r: 140,
+                    speedTheta: (Math.random() - 0.5) * 0.012,
+                    speedPhi: (Math.random() - 0.5) * 0.012,
+                    size: Math.random() * 2 + 0.8
+                });
+            }
+        }
+
+        function animateSphere() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = sphereColor;
+            particles.forEach(p => {
+                p.theta += p.speedTheta; p.phi += p.speedPhi;
+                let x = p.r * Math.sin(p.phi) * Math.cos(p.theta);
+                let y = p.r * Math.sin(p.phi) * Math.sin(p.theta);
+                let z = p.r * Math.cos(p.phi);
+                let scale = (300 + z) / 300;
+                let alpha = (z + p.r) / (p.r * 2);
+                if (alpha < 0.15) alpha = 0.15;
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 + x * scale, canvas.height / 2 + y * scale, p.size * scale, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            requestAnimationFrame(animateSphere);
+        }
+        initParticles(); animateSphere();
+
+        function updateFileName(input, displayId) {
+            const display = document.getElementById(displayId);
+            if (input.files.length > 0) {
+                display.innerText = '✅ ' + input.files[0].name; display.style.color = '#10b981';
+            } else {
+                display.innerText = '🖱️ คลิกเพื่อเลือกไฟล์'; display.style.color = '#2563eb';
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+            if (tabId === 'dataviz') { setTimeout(() => { updateDataViz(); }, 100); }
+        }
+
+        async function fetchDiseases() {
+            try {
+                const response = await fetch(`${API_BASE}/diseases`);
+                allDiseasesData = await response.json();
+                const selector = document.getElementById('disease-selector');
+                const savedSelection = selector.value;
+                selector.innerHTML = "";
+
+                if (!allDiseasesData || Object.keys(allDiseasesData).length === 0) {
+                    selector.innerHTML = `<option value="">-- ยังไม่มีข้อมูลโมเดลในระบบ --</option>`;
+                    return;
+                }
+                Object.keys(allDiseasesData).forEach(dName => {
+                    selector.innerHTML += `<option value="${dName}">${dName}</option>`;
+                });
+                if (savedSelection && allDiseasesData[savedSelection]) selector.value = savedSelection;
+                onDiseaseChange();
+            } catch (error) {
+                document.getElementById('disease-selector').innerHTML = `<option value="">-- ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ --</option>`;
+            }
+        }
+
+        // 🛠️ แก้ไข: เพิ่มระบบดักจับ Error และรองรับชื่อตัวแปรที่หลากหลายจาก Python
+        function onDiseaseChange() {
+            try {
+                currentDisease = document.getElementById('disease-selector').value;
+                if (!currentDisease || !allDiseasesData[currentDisease]) return;
+                document.getElementById('result-header').innerText = `โอกาสพบภาวะ\n[ ${currentDisease} ]`;
+
+                const dData = allDiseasesData[currentDisease];
+
+                // รองรับทั้งชื่อ features หรือ top_features
+                let features = dData.features || dData.top_features || [];
+                // รองรับทั้งชื่อ scores หรือ importance
+                let scores = dData.scores || dData.importance || dData.importances || [];
+                // รองรับทั้งชื่อ ranges หรือ feature_ranges
+                let ranges = dData.ranges || dData.feature_ranges || {};
+
+                if (features.length === 0) {
+                    throw new Error("ไม่พบข้อมูล 'features' จากเซิร์ฟเวอร์ (รูปแบบ JSON อาจไม่ถูกต้อง)");
+                }
+
+                const minimalToggle = document.getElementById('minimal-toggle');
+                const isMinimal = minimalToggle ? minimalToggle.checked : false;
+
+                if (isMinimal && features.length > 3) {
+                    features = features.slice(0, 3);
+                }
+
+                const container = document.getElementById('sliders-container');
+                container.innerHTML = "";
+
+                features.forEach((feature, index) => {
+                    const rangeData = ranges[feature] || { min: 0, max: 10, mean: 5 };
+                    const min = rangeData.min !== undefined ? rangeData.min : 0;
+                    const max = rangeData.max !== undefined ? rangeData.max : 10;
+                    const mean = rangeData.mean !== undefined ? rangeData.mean : (min + max) / 2;
+
+                    const rawScore = scores[index] !== undefined ? scores[index] : 0;
+                    const scorePercent = (rawScore * 100).toFixed(1);
+                    let step = (max - min) / 1000;
+                    if (step === 0 || isNaN(step)) step = 0.01;
+
+                    container.innerHTML += `
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span class="feature-name">
+                                <b>${index + 1}.</b> <span id="feat-name-${index}">${feature}</span>
+                                <span class="normal-value">✔️ ค่าปกติ: <span id="feat-mean-${index}">${mean.toFixed(4)}</span></span>
+                                <span class="importance-score">(อิทธิพล ${scorePercent}%)</span>
+                            </span>
+                            <span id="val-${index}" class="value-display">${mean.toFixed(4)}</span>
+                        </div>
+                        <input type="range" class="metabolite-slider" id="slider-${index}" min="${min}" max="${max}" step="${step}" value="${mean}" oninput="updateValueAndPredict(${index})">
+                    </div>
+                `;
+                });
+                predictRisk();
+            } catch (error) {
+                console.error("Render Error:", error);
+                // แสดง Error ออกหน้าจอให้เห็นชัดเจนไปเลย จะได้แก้ถูกจุด
+                document.getElementById('sliders-container').innerHTML = `
+                <div style="background: #fee2e2; color: #b91c1c; padding: 20px; border-radius: 12px; border: 1px solid #f87171;">
+                    <h4 style="margin-top:0;">⚠️ พบข้อผิดพลาดในการแสดงผล</h4>
+                    <p style="font-size:14px; margin-bottom:0;">${error.message}</p>
+                    <p style="font-size:12px; color:#7f1d1d;">* กรุณาตรวจสอบโครงสร้าง JSON ที่ Python ส่งมา</p>
+                </div>
+            `;
+            }
+        }
+
+        function updateValueAndPredict(index) {
+            document.getElementById(`val-${index}`).innerText = parseFloat(document.getElementById(`slider-${index}`).value).toFixed(4);
+            predictRisk();
+        }
+
+        async function predictRisk() {
+            const dData = allDiseasesData[currentDisease];
+            if (!dData) return;
+
+            let features_full = dData.features || dData.top_features || [];
+            const activeSliders = document.querySelectorAll('.metabolite-slider');
+            const currentValues = Array.from(activeSliders).map(slider => parseFloat(slider.value));
+
+            let fullValues = [...currentValues];
+            const minimalToggle = document.getElementById('minimal-toggle');
+            let ranges = dData.ranges || dData.feature_ranges || {};
+
+            if (minimalToggle && minimalToggle.checked && features_full.length > 3) {
+                for (let i = 3; i < features_full.length; i++) {
+                    let f_name = features_full[i];
+                    let f_mean = ranges[f_name] ? ranges[f_name].mean : 0;
+                    fullValues.push(f_mean);
+                }
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ disease: currentDisease, values: fullValues })
+                });
+                const result = await response.json();
+                if (result.risk_percentage !== undefined) updateDashboard(result.risk_percentage);
+            } catch (error) { console.error("Predict error:", error); }
+        }
+
+        function updateDashboard(risk) {
+            const circle = document.getElementById('risk-circle');
+            const status = document.getElementById('risk-status');
+            circle.innerText = `${risk}%`;
+
+            if (risk < 30) {
+                sphereColor = '#10b981'; status.innerText = '🟢 ความเสี่ยงต่ำ'; status.style.color = '#10b981';
+            } else if (risk < 70) {
+                sphereColor = '#f59e0b'; status.innerText = '🟡 ความเสี่ยงปานกลาง'; status.style.color = '#d97706';
+            } else {
+                sphereColor = '#ef4444'; status.innerText = '🔴 ความเสี่ยงสูง!'; status.style.color = '#ef4444';
+            }
+        }
+
+        function updateDataViz() {
+            if (!currentDisease) return;
+            const activeSliders = document.querySelectorAll('.metabolite-slider');
+            if (activeSliders.length === 0) return;
+
+            let labels = []; let userValues = []; let meanValues = [];
+
+            activeSliders.forEach((slider, i) => {
+                const nameEl = document.getElementById(`feat-name-${i}`);
+                const meanEl = document.getElementById(`feat-mean-${i}`);
+                if (nameEl && meanEl) {
+                    labels.push(nameEl.innerText);
+                    userValues.push(parseFloat(slider.value));
+                    meanValues.push(parseFloat(meanEl.innerText));
+                }
+            });
+
+            const ctxChart = document.getElementById('comparisonChart');
+            if (!ctxChart) return;
+            if (myChart) { myChart.destroy(); }
+
+            myChart = new Chart(ctxChart.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'ค่าปัจจุบันที่ปรับ', data: userValues, backgroundColor: 'rgba(37, 99, 235, 0.7)', borderColor: 'rgba(37, 99, 235, 1)', borderWidth: 1 },
+                        { label: 'ค่าเฉลี่ยคนปกติ', data: meanValues, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
+            });
+        }
+
+        document.getElementById('file-meta').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const firstLine = text.split('\n')[0].replace(/\r/g, '');
+                const separator = text.includes('\t') ? '\t' : ',';
+                const columns = firstLine.split(separator);
+
+                const mapSample = document.getElementById('map-sample-col');
+                const mapTarget = document.getElementById('map-target-col');
+                const mapPhysical = document.getElementById('map-physical-col');
+
+                mapSample.innerHTML = ""; mapTarget.innerHTML = "";
+                mapPhysical.innerHTML = '<option value="">-- ไม่ใช้ข้อมูลกายภาพ --</option>';
+
+                columns.forEach(col => {
+                    const opt1 = document.createElement('option'); opt1.value = col; opt1.innerText = col;
+                    const opt2 = document.createElement('option'); opt2.value = col; opt2.innerText = col;
+                    const opt3 = document.createElement('option'); opt3.value = col; opt3.innerText = col;
+
+                    if (col.toLowerCase().includes('sample')) opt1.selected = true;
+                    if (col.toLowerCase().includes('factor') || col.toLowerCase().includes('group')) opt2.selected = true;
+
+                    mapSample.appendChild(opt1); mapTarget.appendChild(opt2); mapPhysical.appendChild(opt3);
+                });
+                document.getElementById('mapping-section').style.display = 'block';
+            };
+            reader.readAsText(file.slice(0, 1000));
+        });
+
+        async function uploadNewDisease() {
+            const dName = document.getElementById('input-disease-name').value.trim();
+            const fileNmr = document.getElementById('file-nmr').files[0];
+            const fileMeta = document.getElementById('file-meta').files[0];
+            const sampleCol = document.getElementById('map-sample-col').value;
+            const targetCol = document.getElementById('map-target-col').value;
+
+            const statusText = document.getElementById('upload-status');
+            const btn = document.getElementById('btn-train');
+
+            if (!dName || !fileNmr || !fileMeta) { alert("กรุณากรอกข้อมูลให้ครบ"); return; }
+
+            const formData = new FormData();
+            formData.append("disease_name", dName);
+            formData.append("nmr_file", fileNmr);
+            formData.append("meta_file", fileMeta);
+            formData.append("sample_col", sampleCol);
+            formData.append("target_col", targetCol);
+
+            statusText.style.color = '#2563eb'; statusText.innerText = "⏳ กำลังประมวลผล..."; btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/upload`, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (response.ok) {
+                    statusText.style.color = '#10b981'; statusText.innerText = `✅ สำเร็จ!`;
+                    document.getElementById('mapping-section').style.display = 'none';
+                    await fetchDiseases();
+                    setTimeout(() => {
+                        document.getElementById('disease-selector').value = dName;
+                        onDiseaseChange();
+                        switchTab('predict');
+                        statusText.innerText = ""; btn.disabled = false;
+                    }, 1500);
+                } else {
+                    statusText.style.color = '#ef4444'; statusText.innerText = "❌ Error: " + result.error; btn.disabled = false;
+                }
+            } catch (error) { statusText.style.color = '#ef4444'; statusText.innerText = "❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"; btn.disabled = false; }
+        }
+
+        window.onload = fetchDiseases;
+    </script>
+</body>
+
+</html>
